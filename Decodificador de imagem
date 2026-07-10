@@ -1,0 +1,31 @@
+name: Decodifica artes
+
+on:
+  push:
+    paths:
+      - "**/*.b64"
+
+permissions:
+  contents: write
+
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decodifica todos os .b64 em binários
+        run: |
+          find . -name "*.b64" -not -path "./.git/*" | while read f; do
+            out="${f%.b64}"
+            base64 -d "$f" > "$out" && rm "$f"
+            echo "Decodificado: $out"
+          done
+
+      - name: Commit dos binários
+        run: |
+          git config user.name "artes-bot"
+          git config user.email "artes-bot@users.noreply.github.com"
+          git add -A
+          git commit -m "Artes decodificadas automaticamente" || echo "Nada a commitar"
+          git push
